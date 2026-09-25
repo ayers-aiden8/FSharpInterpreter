@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FSharpInterpreter", "FSharpInterpreter\FSharpInterpreter.csproj", "{1D68030D-C94E-4371-8AB6-5D4DD26FDE33}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UILayer", "FSharpInterpreter\UILayer.csproj", "{1D68030D-C94E-4371-8AB6-5D4DD26FDE33}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "InterpreterLayer", "InterpreterLayer\InterpreterLayer.fsproj", "{F36784FA-AE4A-43FE-921A-EEB5101FD3FE}"
 EndProject
