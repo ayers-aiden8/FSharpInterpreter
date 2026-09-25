@@ -2,7 +2,7 @@
 using System.Data;
 using System.Windows;
 
-namespace FSharpInterpreter;
+namespace UILayer;
 
 /// <summary>
 /// Interaction logic for App.xaml

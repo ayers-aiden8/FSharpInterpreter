@@ -9,7 +9,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace FSharpInterpreter;
+namespace UILayer;
 
 /// <summary>
 /// Interaction logic for MainWindow.xaml
@@ -19,5 +19,10 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+    }
+
+    private void EnterOnClick(object sender, RoutedEventArgs e)
+    {
+        Label.Content = TextBox.Text;
     }
 }
