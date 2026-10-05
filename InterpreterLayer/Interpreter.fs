@@ -6,7 +6,7 @@
 open System
 
 type terminal = 
-    Add | Sub | Mul | Div | Lpar | Rpar | Num of int
+    Add | Sub | Mul | Div | Lpar | Rpar | Pow | Num of int
 
 let str2lst s = [for c in s -> c]
 let isblank c = System.Char.IsWhiteSpace c
@@ -30,6 +30,7 @@ let lexer input =
         | '/'::tail -> Div :: scan tail
         | '('::tail -> Lpar:: scan tail
         | ')'::tail -> Rpar:: scan tail
+        | '^'::tail -> Pow :: scan tail
         | c :: tail when isblank c -> scan tail
         | c :: tail when isdigit c -> let (iStr, iVal) = scInt(tail, intVal c) 
                                       Num iVal :: scan iStr
@@ -39,13 +40,16 @@ let lexer input =
 let getInputString() : string = 
     Console.Write("Enter an expression: ")
     Console.ReadLine()
-
+// unary operator is considered a single token rather than an operator that connects two operands
+// it belongs in the NR category in a recursive manner 
 // Grammar in BNF:
 // <E>        ::= <T> <Eopt>
 // <Eopt>     ::= "+" <T> <Eopt> | "-" <T> <Eopt> | <empty>
-// <T>        ::= <NR> <Topt>
-// <Topt>     ::= "*" <NR> <Topt> | "/" <NR> <Topt> | <empty>
-// <NR>       ::= "Num" <value> | "(" <E> ")"
+// <T>        ::= <P> <Topt>
+// <Topt>     ::= "*" <P> <Topt> | "/" <P> <Topt> | <empty>
+// <P>        ::= <NR> <Popt>
+// <Popt>     ::= "^" <NR>  | <empty>
+// <NR>       ::= "Num" <value> | "(" <E> ")"| "-" <NR> | "+" <NR>
 //
 
 let parser tList = 
@@ -55,11 +59,16 @@ let parser tList =
         | Add :: tail -> (T >> Eopt) tail
         | Sub :: tail -> (T >> Eopt) tail
         | _ -> tList
-    and T tList = (NR >> Topt) tList
+    and T tList = (P >> Topt) tList
     and Topt tList =
         match tList with
-        | Mul :: tail -> (NR >> Topt) tail
-        | Div :: tail -> (NR >> Topt) tail
+        | Mul :: tail -> (P >> Topt) tail
+        | Div :: tail -> (P >> Topt) tail
+        | _ -> tList
+    and P tList = (NR >> Popt) tList
+    and Popt tList =
+        match tList with
+        | Pow :: tail -> NR tail
         | _ -> tList
     and NR tList =
         match tList with 
@@ -67,6 +76,8 @@ let parser tList =
         | Lpar :: tail -> match E tail with 
                           | Rpar :: tail -> tail
                           | _ -> raise parseError
+        | Sub :: tail -> NR tail
+        | Add :: tail -> NR tail
         | _ -> raise parseError
     E tList
 
@@ -79,13 +90,19 @@ let parseNeval tList =
         | Sub :: tail -> let (tLst, tval) = T tail
                          Eopt (tLst, value - tval)
         | _ -> (tList, value)
-    and T tList = (NR >> Topt) tList
+    and T tList = (P >> Topt) tList
     and Topt (tList, value) =
         match tList with
-        | Mul :: tail -> let (tLst, tval) = NR tail
+        | Mul :: tail -> let (tLst, tval) = P tail
                          Topt (tLst, value * tval)
-        | Div :: tail -> let (tLst, tval) = NR tail
+        | Div :: tail -> let (tLst, tval) = P tail
                          Topt (tLst, value / tval)
+        | _ -> (tList, value)
+    and P tList = (NR >> Popt) tList
+    and Popt (tList, value) =
+        match tList with
+        | Pow :: tail -> let (tLst, tval) = NR tail
+                         (tLst, pown value tval)
         | _ -> (tList, value)
     and NR tList =
         match tList with 
@@ -94,6 +111,10 @@ let parseNeval tList =
                           match tLst with 
                           | Rpar :: tail -> (tail, tval)
                           | _ -> raise parseError
+        | Sub :: tail -> let (tLst, tval) = NR tail
+                         (tLst, -tval)
+        | Add :: tail -> let (tLst, tval) = NR tail
+                         (tLst, +tval)
         | _ -> raise parseError
     E tList
 
